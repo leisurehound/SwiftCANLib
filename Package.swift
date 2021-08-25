@@ -26,7 +26,7 @@ let package = Package(
         .target(
             name: "SwiftCANLib",
             dependencies: ["canhelpers",
-                           "CSocketCAN",
+ //                          "CSocketCAN",
             ],
             exclude: ["canhelpers"]
           ),
