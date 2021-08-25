@@ -15,7 +15,6 @@ int systemIsLittleEndian() {
   short int twoByteInt = 1;
   char * firstByte = (char *) &twoByteInt;
   
-  printf("Testing system for endianness - int:  %d, firstByte: %d", twoByteInt, *firstByte);
   return *firstByte == twoByteInt;
   
 }
