@@ -46,7 +46,7 @@ public class CANCalibrations {
     let offset: Double
     let gain: Double
     
-    init(name: String, unit: String, dataLength: Int, startBit: Int, endianness: Endianness, isSigned: Bool, offset: Double, gain: Double) {
+    public init(name: String, unit: String, dataLength: Int, startBit: Int, endianness: Endianness, isSigned: Bool, offset: Double, gain: Double) {
       guard dataLength <= 64 else { fatalError("SwiftCANLib: data fields larger than 64 bits are not currently supported") }
       guard startBit + dataLength <= 64 else { fatalError("SwiftCANLib: startbit + datalength spans past 64 bits, which is currently not supported") }
       self.name = name
@@ -176,7 +176,7 @@ public class CANCalibrations {
   //  init from a Calibration for a single frame
   //  init from an array of Calibration for multiple frames
   //  Also want to add/delete/replace a Calibration for a frame
-  init(calibrations: [Calibration] = [], delegate: CANCalibrationsListener?) {
+  public init(calibrations: [Calibration] = [], delegate: CANCalibrationsListener?) {
     self.calibrations = [:]
     calibrations.forEach { calibration in
       self.calibrations[calibration.frameID] = calibration
