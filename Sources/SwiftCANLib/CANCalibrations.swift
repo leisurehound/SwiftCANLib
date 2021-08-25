@@ -30,6 +30,11 @@ public class CANCalibrations {
   }
   
   public struct Calibration {
+    public init(frameID: UInt, signals: [CANCalibrations.Signal]) {
+      self.frameID = frameID
+      self.signals = signals
+    }
+    
     public let frameID: UInt
     public let signals: [Signal]
     
