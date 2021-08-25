@@ -21,7 +21,7 @@ public class CANCalibrations {
     #if os(macOS) || os(iOS) || os(tvOS)
     internal static var systemEndianness: Endianness  = CFByteOrderGetCurrent() == CFByteOrder(CFByteOrderBigEndian.rawValue) ? .bigEndian : littleEndian
     #else
-    internal static var systemEndianness: endianness  = systemIsLittleEndian() == 1 ? .littleEndian : .bigEndian
+    internal static var systemEndianness: Endianness  = systemIsLittleEndian() == 1 ? .littleEndian : .bigEndian
     #endif
     
     func signalMatchesPlatformEndianness() -> Bool {
