@@ -1,0 +1,5 @@
+module CSocketCAN [system] {
+	header "../../Headers/CSocketCAN-Bridging-Header.h"
+	link "socketcan"
+	export *
+}
