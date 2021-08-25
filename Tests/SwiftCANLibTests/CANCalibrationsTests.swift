@@ -1,16 +1,14 @@
 //
-//  CalibrationExerciserTests.swift
-//  CalibrationExerciserTests
+//  CalibrationTests.swift
+//  CalibrationTests
 //
 //  Created by Timothy Wise on 8/20/21.
 //
 
 import XCTest
-@testable import CalibrationExerciser
+@testable import SwiftCANLib
 
-class CalibrationExerciserTests: XCTestCase {
-  
-  let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianess: .littleEndian, isSigned: false, offset: 0, gain: 1.0)
+class CANCalibrationTests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -23,17 +21,17 @@ class CalibrationExerciserTests: XCTestCase {
   // single byte tests
   
   func testOneByteSignalShortPayloadNoCalibrationFactor() throws {
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 8, startBit: 8, endianess: .littleEndian, isSigned: false, offset: 0, gain: 1.0)
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 8, startBit: 8, endianness: .littleEndian, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02])
     let calibratedVaue = signal.calibrate(frame: frame)
     XCTAssertEqual(calibratedVaue!.value, Double(0x01), accuracy: 0.01)
   }
   
   func testOneByteSignalFullPayloadNoCalibrationFactor() throws {
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 8, startBit: 40, endianess: .littleEndian, isSigned: false, offset: 0, gain: 1.0)
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 8, startBit: 40, endianness: .littleEndian, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
     let calibratedVaue = signal.calibrate(frame: frame)
     XCTAssertEqual(calibratedVaue!.value, Double(0x05), accuracy: 0.01)
   }
@@ -42,9 +40,9 @@ class CalibrationExerciserTests: XCTestCase {
     
     let gain = 41.0
     let offset = 17.0
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 8, startBit: 40, endianess: .littleEndian, isSigned: false, offset: offset, gain: gain)
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 8, startBit: 40, endianness: .littleEndian, isSigned: false, offset: offset, gain: gain)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
     let calibratedVaue = signal.calibrate(frame: frame)
     XCTAssertEqual(calibratedVaue!.value, Double(0x05) * gain + offset, accuracy: 0.01)
   }
@@ -53,10 +51,10 @@ class CalibrationExerciserTests: XCTestCase {
   //   Two Byte tests
 
     func testTwoByteSignalWithSameEndianessShortPayloadndNoCalibrationFactor() throws {
-      let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ? .littleEndian : .bigEndian
-      let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 8, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+      let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .littleEndian : .bigEndian
+      let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 8, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
       
-      let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02])
+      let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02])
       
       let calibratedVaue = signal.calibrate(frame: frame)
       var expectedValue = 0.0
@@ -69,10 +67,10 @@ class CalibrationExerciserTests: XCTestCase {
     }
   
   func testTwoByteSignalMiddlePayloadWithSameEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ? .littleEndian : .bigEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 8, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .littleEndian : .bigEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 8, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
     
     let calibratedVaue = signal.calibrate(frame: frame)
     var expectedValue = 0.0
@@ -84,10 +82,10 @@ class CalibrationExerciserTests: XCTestCase {
   }
 
 func testTwoByteSignalEndPayloadWithSameEndianessFullPayloadAndNoCalibrationFactor() throws {
-  let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ? .littleEndian : .bigEndian
-  let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 48, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+  let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .littleEndian : .bigEndian
+  let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 48, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
   
-  let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+  let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
   
   let calibratedVaue = signal.calibrate(frame: frame)
   var expectedValue = 0.0
@@ -100,10 +98,10 @@ func testTwoByteSignalEndPayloadWithSameEndianessFullPayloadAndNoCalibrationFact
 }
 
 func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrationFactor() throws {
-  let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .littleEndian : .bigEndian
-  let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+  let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .littleEndian : .bigEndian
+  let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
   
-  let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+  let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
   
   let calibratedVaue = signal.calibrate(frame: frame)
   var expectedValue = 0.0
@@ -116,12 +114,12 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
 }
   
   func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndWithCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .littleEndian : .bigEndian
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .littleEndian : .bigEndian
     let gain = 41.0
     let offset = 17.0
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianess: endianness, isSigned: false, offset: offset, gain: gain)
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianness: endianness, isSigned: false, offset: offset, gain: gain)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
     
     let calibratedVaue = signal.calibrate(frame: frame)
     var expectedValue = 0.0
@@ -134,10 +132,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testTwoByteSignedSignalBeginningPayloadWithSameEndianessFullPayloadAndWithCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .littleEndian : .bigEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianess: endianness, isSigned: true, offset: 0.0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .littleEndian : .bigEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianness: endianness, isSigned: true, offset: 0.0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
     
     let calibratedVaue = signal.calibrate(frame: frame)
     var expectedValue: UInt16 = 0
@@ -151,10 +149,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   
   //   Four Byte tests
   func testFourByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .littleEndian : .bigEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 0, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .littleEndian : .bigEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -170,10 +168,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testFourByteSignedSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .littleEndian : .bigEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 0, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .littleEndian : .bigEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -189,10 +187,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testFourByteSignalEndingPayloadWithSameEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .littleEndian : .bigEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 32, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .littleEndian : .bigEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 32, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -208,10 +206,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testFourByteSignalMiddlePayloadWithSameEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .littleEndian : .bigEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 24, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .littleEndian : .bigEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 24, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -226,12 +224,12 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testFourByteSignalMiddlePayloadWithSameEndianessFullPayloadAndWithCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .littleEndian : .bigEndian
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .littleEndian : .bigEndian
     let gain = 41.0
     let offset = 17.0
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 24, endianess: endianness, isSigned: false, offset: offset, gain: gain)
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 24, endianness: endianness, isSigned: false, offset: offset, gain: gain)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -247,10 +245,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   
   //   Eight Byte tests
   func testEightByteSignalFullPayloadWithSameEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .littleEndian : .bigEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 64, startBit: 0, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .littleEndian : .bigEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 64, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -269,12 +267,12 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testEightByteSignalFullPayloadWithSameEndianessFullPayloadAndWithCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .littleEndian : .bigEndian
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .littleEndian : .bigEndian
     let gain = 41.0
     let offset = 17.0
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 64, startBit: 0, endianess: endianness, isSigned: false, offset: offset, gain: gain)
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 64, startBit: 0, endianness: endianness, isSigned: false, offset: offset, gain: gain)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -296,10 +294,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   //Two byte tests
   
     func testTwoByteSignalWithOppositeEndianessShortPayloadndNoCalibrationFactor() throws {
-      let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ? .bigEndian : .littleEndian
-      let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 8, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+      let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .bigEndian : .littleEndian
+      let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 8, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
       
-      let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03])
+      let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03])
       
       let calibratedVaue = signal.calibrate(frame: frame)
       
@@ -313,10 +311,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
     }
   
     func testTwoByteSignalMiddlePayloadWithOppositeEndianessFullPayloadAndNoCalibrationFactor() throws {
-      let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ? .bigEndian : .littleEndian
-      let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 8, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+      let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .bigEndian : .littleEndian
+      let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 8, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
       
-      let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+      let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
       
       let calibratedVaue = signal.calibrate(frame: frame)
       
@@ -330,10 +328,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
     }
   
   func testTwoByteSignalEndPayloadWithOppositeEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ? .bigEndian : .littleEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 48, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .bigEndian : .littleEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 48, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
     
     let calibratedVaue = signal.calibrate(frame: frame)
     
@@ -347,10 +345,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testTwoByteSignalBeginningPayloadWithOppositeEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ? .bigEndian : .littleEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .bigEndian : .littleEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
     
     let calibratedVaue = signal.calibrate(frame: frame)
     var expectedValue: UInt16 = 0
@@ -364,10 +362,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   
   //   Four Byte tests
   func testFourByteSignalBeginningPayloadWithOppositeEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .bigEndian : .littleEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 0, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .bigEndian : .littleEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -383,10 +381,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testFourByteSignedSignalBeginningPayloadWithOppositeEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .bigEndian : .littleEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 0, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .bigEndian : .littleEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -402,10 +400,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testFourByteSignalEndingPayloadWithOppositeEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .bigEndian : .littleEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 32, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .bigEndian : .littleEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 32, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -421,10 +419,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testFourByteSignalMiddlePayloadWithOppositeEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .bigEndian : .littleEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 24, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .bigEndian : .littleEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 24, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -439,12 +437,12 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testFourByteSignalMiddlePayloadWithOppositeEndianessFullPayloadAndWithCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .bigEndian : .littleEndian
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .bigEndian : .littleEndian
     let gain = 41.0
     let offset = 17.0
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 24, endianess: endianness, isSigned: false, offset: offset, gain: gain)
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 32, startBit: 24, endianness: endianness, isSigned: false, offset: offset, gain: gain)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -460,10 +458,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   
   //   Eight Byte tests
   func testEightByteSignalFullPayloadWithOppositeEndianessFullPayloadAndNoCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .bigEndian : .littleEndian
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 64, startBit: 0, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .bigEndian : .littleEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 64, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -482,12 +480,12 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   }
   
   func testEightByteSignalFullPayloadWithOppositeEndianessFullPayloadAndWithCalibrationFactor() throws {
-    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ?  .bigEndian : .littleEndian
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ?  .bigEndian : .littleEndian
     let gain = 41.0
     let offset = 17.0
-    let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 64, startBit: 0, endianess: endianness, isSigned: false, offset: offset, gain: gain)
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 64, startBit: 0, endianness: endianness, isSigned: false, offset: offset, gain: gain)
     
-    let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
 
     
     let calibratedVaue = signal.calibrate(frame: frame)
@@ -507,10 +505,10 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   
 
     func testCalibrationPerformance() throws {
-      let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianess == .littleEndian ? .bigEndian : .littleEndian
-      let signal = Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianess: endianness, isSigned: false, offset: 0, gain: 1.0)
+      let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .bigEndian : .littleEndian
+      let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 16, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
       
-      let frame = CANInterface.Frame(interface: "Can1", frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
+      let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
         self.measure {
            _ = signal.calibrate(frame: frame)
         }

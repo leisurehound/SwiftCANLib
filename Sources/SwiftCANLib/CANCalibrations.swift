@@ -21,7 +21,7 @@ public class CANCalibrations {
     #if os(macOS) || os(iOS) || os(tvOS)
     internal static var systemEndianness: Endianness  = CFByteOrderGetCurrent() == CFByteOrder(CFByteOrderBigEndian.rawValue) ? .bigEndian : littleEndian
     #else
-    internal static var systemEndianness: Endianness  = systemIsLittleEndian() == 1 ? .littleEndian : .bigEndian
+    internal static var systemEndianness: endianness  = systemIsLittleEndian() == 1 ? .littleEndian : .bigEndian
     #endif
     
     func signalMatchesPlatformEndianness() -> Bool {
@@ -41,7 +41,7 @@ public class CANCalibrations {
     let unit: String
     let dataLength: Int // bits
     let startBit: Int
-    let Endianness: Endianness
+    let endianness: Endianness
     let isSigned: Bool
     let offset: Double
     let gain: Double
@@ -53,7 +53,7 @@ public class CANCalibrations {
       self.unit = unit
       self.dataLength = dataLength
       self.startBit = startBit
-      self.Endianness = Endianness
+      self.endianness = Endianness
       self.isSigned = isSigned
       self.offset = offset
       self.gain = gain
@@ -95,7 +95,7 @@ public class CANCalibrations {
       var calibratedValue: Double = 0.0
       var rawIntDatum: Int64 = 0
       
-      if (!isSigned && Endianness.signalMatchesPlatformEndianness()) || (dataLength <= 8 && !isSigned) { // shortcut for the not modified condition
+      if (!isSigned && endianness.signalMatchesPlatformEndianness()) || (dataLength <= 8 && !isSigned) { // shortcut for the not modified condition
         calibratedValue = Double(intValue) * gain + offset
         rawIntDatum = Int64(intValue)
         return CalibratedDatum(timestamp: frame.timestamp, name: name, unit: unit, value: calibratedValue, rawIntData: rawIntDatum)
@@ -107,19 +107,19 @@ public class CANCalibrations {
         // the 8 bit case is handled in the shortcut.
         if dataLength <= 16 {
           var datum: UInt16 = UInt16(truncatingIfNeeded: intValue)
-          datum = Endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
+          datum = endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
           rawIntDatum = Int64(datum)
           calibratedValue = Double(datum) * gain + offset
         } else
         if dataLength <= 32 {
           var datum: UInt32 = UInt32(truncatingIfNeeded: intValue)
-          datum = Endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
+          datum = endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
           rawIntDatum = Int64(datum)
           calibratedValue = Double(datum) * gain + offset
         } else
         if dataLength <= 64 {
           var datum: UInt64 = UInt64(truncatingIfNeeded: intValue)
-          datum = Endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
+          datum = endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
           rawIntDatum = Int64(datum)
           calibratedValue = Double(datum) * gain + offset
         }
@@ -133,19 +133,19 @@ public class CANCalibrations {
         } else
         if dataLength <= 16 {
           var datum: Int16 = Int16(truncatingIfNeeded: intValue)
-          datum = Endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
+          datum = endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
           rawIntDatum = Int64(datum)
           calibratedValue = Double(datum) * gain + offset
         } else
         if dataLength <= 32 {
           var datum: Int32 = Int32(truncatingIfNeeded: intValue)
-          datum = Endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
+          datum = endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
           rawIntDatum = Int64(datum)
           calibratedValue = Double(datum) * gain + offset
         } else
         if dataLength <= 64 {
           var datum: Int64 = Int64(truncatingIfNeeded: intValue)
-          datum = Endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
+          datum = endianness.signalMatchesPlatformEndianness() ? datum : datum.byteSwapped
           rawIntDatum = Int64(datum)
           calibratedValue = Double(datum) * gain + offset
         }
