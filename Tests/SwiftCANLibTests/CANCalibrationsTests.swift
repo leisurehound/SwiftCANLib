@@ -10,14 +10,6 @@ import XCTest
 
 class CANCalibrationTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-  
   // single byte tests
   
   func testOneByteSignalShortPayloadNoCalibrationFactor() throws {
@@ -513,7 +505,9 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
            _ = signal.calibrate(frame: frame)
         }
     }
-
+static let allTests = [
+  ("testEightByteSignalFullPayloadWithOppositeEndianessFullPayloadAndWithCalibrationFactor", testEightByteSignalFullPayloadWithOppositeEndianessFullPayloadAndWithCalibrationFactor),
+]
 
 }
 
