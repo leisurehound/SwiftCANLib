@@ -30,8 +30,8 @@ public class CANCalibrations {
   }
   
   public struct Calibration {
-    let frameID: UInt
-    let signals: [Signal]
+    public let frameID: UInt
+    public let signals: [Signal]
     
     //TODO:  init from a string from a DBC file BO_
   }
@@ -156,16 +156,16 @@ public class CANCalibrations {
     }
   }
   public struct CalibratedDatum {
-    let timestamp: TimeInterval
-    let name: String
-    let unit: String
-    let value: Double
-    let rawIntData: Int64
+    public let timestamp: TimeInterval
+    public let name: String
+    public let unit: String
+    public let value: Double
+    public let rawIntData: Int64
   }
   
   public struct CalibratedData {
-    let timestamp: TimeInterval
-    let signals: [String:CalibratedDatum]
+    public let timestamp: TimeInterval
+    public let signals: [String:CalibratedDatum]
   }
   
   private var calibrations: [UInt:Calibration]
