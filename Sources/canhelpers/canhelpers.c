@@ -158,7 +158,7 @@ int writeCANFrame(int fd, int32_t id, char len,  unsigned char *data) {
   if (len > 8)
     return -1;
 
-  struct can_frame frame;
+  struct can_frame frame{0};
 
   frame.can_id = id;
   frame.can_dlc = len;
@@ -174,7 +174,7 @@ int writeCANFDFrame(int fd, int32_t id, char len, unsigned char *data) {
   if (len > 64)
     return -1;
 
-  struct canfd_frame frame;
+  struct canfd_frame frame{0};
   frame.can_id = id;
   frame.len = len;
   for (int i = 0; i < len; i++) {
