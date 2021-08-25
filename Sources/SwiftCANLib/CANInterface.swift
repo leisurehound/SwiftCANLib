@@ -65,7 +65,7 @@ public class CANInterface {
     }
   }
   
-  //TODO:  this really only supports one CANInterface at the moment, need to make this a thread safe storage
+  // this is the map to take the C non-object delegate method and call the appropriate CANInterface instance
   internal static var fdToCANInterfaceMap = ThreadSafeDictionary<CInt, CANInterface>()
   
   public private(set) var interfaceName: String
