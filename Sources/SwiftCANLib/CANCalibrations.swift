@@ -46,14 +46,14 @@ public class CANCalibrations {
     let offset: Double
     let gain: Double
     
-    init(name: String, unit: String, dataLength: Int, startBit: Int, Endianness: Endianness, isSigned: Bool, offset: Double, gain: Double) {
+    init(name: String, unit: String, dataLength: Int, startBit: Int, endianness: Endianness, isSigned: Bool, offset: Double, gain: Double) {
       guard dataLength <= 64 else { fatalError("SwiftCANLib: data fields larger than 64 bits are not currently supported") }
       guard startBit + dataLength <= 64 else { fatalError("SwiftCANLib: startbit + datalength spans past 64 bits, which is currently not supported") }
       self.name = name
       self.unit = unit
       self.dataLength = dataLength
       self.startBit = startBit
-      self.endianness = Endianness
+      self.endianness = endianness
       self.isSigned = isSigned
       self.offset = offset
       self.gain = gain
