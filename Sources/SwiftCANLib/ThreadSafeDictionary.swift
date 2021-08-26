@@ -7,6 +7,7 @@
 
 import Foundation
 
+// http://basememara.com/creating-thread-safe-arrays-in-swift/
 class ThreadSafeDictionary<Key: Hashable, Value> {
   
   private var dictionary: [Key:Value]
