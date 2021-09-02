@@ -20,7 +20,7 @@ let package = Package(
         .target(
             name: "canhelpers",
             dependencies: [],
-            exclude: ["mx5telem"],
+            exclude: ["SwiftCANLib"],
             cSettings: [.headerSearchPath("Internal"),]
         ),
         .target(
