@@ -6,12 +6,19 @@
 //
 
 import Foundation
-//import CSocketCAN
 import canhelpers
 
 private let SIZEOF_CANFD_FRAME = sizeofCANFDFrame()
 private let SIZEOF_CAN_FRAME = sizeofCANFrame()
 
+/// Bridging global delegate method whre the C module will call with CAN messages.  Looks up the instance of the message by the
+/// socket file descriptor and forwards to that instance method for processing back to Swift.  This ideally would be a private method, but
+/// given its a not in an object that is impossible.
+/// - Parameters:
+///   - fd: socket file descriptor where the CAN frame was acquired.
+///   - ptr: pointer to the CAN frame for processing
+///   - tv_sec: individual element of the `struct timeval` representing the seconds since start of socket
+///   - tv_usec: individual element of the `struct timeval` representing the mucro seconds since start of the socket
 @_cdecl ("SwiftCanLibBridgeModule")                                   //tv_sec is a long on most unixes, but could be a double
 public func listeningDelegate(fd: CInt, ptr: UnsafeMutableRawPointer?, tv_sec: CLong, tv_usec: CLong) {
   guard let ptr = ptr, let interface = CANInterface.fdToCANInterfaceMap[fd] else { return }
@@ -21,12 +28,15 @@ public func listeningDelegate(fd: CInt, ptr: UnsafeMutableRawPointer?, tv_sec: C
   interface.frameProcessingBridge(data: data, timestamp: deltatime)
 }
 
+/// Delegate protocol used to listed to raw uncalibrated CAN frames from the interface.
 public protocol CANInterfaceRAWListeningDelegate {
-  func processFrame(frame: CANInterface.Frame)
+  func processFrame(_ interface: CANInterface, frame: CANInterface.Frame)
 }
 
+/// Class representing one Controller Area Network interface
 public class CANInterface {
   
+  /// Swift representation of CAN_FRAME with interface name, timestamp, frame ID & payload
   public struct Frame {
     let interface: String
     let timestamp: TimeInterval
@@ -65,9 +75,22 @@ public class CANInterface {
     }
   }
   
+  public enum CANInterfaceError : Error {
+    case FDCANFramesNotAvailable
+    case FileDescriptionNotValid
+    case AttemptToWriteToPipeThatIsNotOpen
+    case NotConnectedToPeer
+    case MemoryAccessErrorOnFrameWrite
+    case WriteWasInterruptedBeforeCompletion
+    case NonBlockingWriteCouldNotBeWrittenImmediately
+    case SizeOfBufferIsGreaterThanSSIZE_MAX
+    case UnkownWriteError
+  }
+  
   // this is the map to take the C non-object delegate method and call the appropriate CANInterface instance
   internal static var fdToCANInterfaceMap = ThreadSafeDictionary<CInt, CANInterface>()
   
+  /// Name of the underlying interface named in ifconfig on the platform
   public private(set) var interfaceName: String
   
   private var addr: sockaddr = sockaddr()
@@ -82,6 +105,13 @@ public class CANInterface {
   private let RAWlisteningDelegate: CANInterfaceRAWListeningDelegate?
   
   /// Creates a new logical CAN interface bound to the physical CAN interface `interfaceName` via a Socket.  It then commences listening on that socket for CAN frames
+  /// - Parameters:
+  ///   - name: Name of the CAN hardware interface to bind this CANInterface object
+  ///   - filters: Array of `[Int32]` representing the Frame IDs to listen for from the hardware interface
+  ///   - calibrations: `Calibrations` object representing how to translate raw frame payloads into engineering units
+  ///   - candumpToConsole: `Bool` representing whether the interface should display the received frames in CANDUMP-ish format to the console
+  ///   - queue: dispatch queue to call the delegate method on
+  ///   - rawDelegate: `CANInterfaceRawListeningDelegate` confirming object for receiving raw frames.
   public init?(name: String,
                filters: [Int32] = [],
                calibrations: CANCalibrations? = nil,
@@ -149,12 +179,17 @@ public class CANInterface {
     }
   }
   
-  //TODO: this needs to return a Result type <Int,error> for bytes written, maybe bool, or error 
-  public func writeFrame(frameID: Int32, bytes: [UInt8]) -> Int {
+  
+  /// Writes `bytes' to the CAN interface on frame `frameID`
+  /// - Parameters:
+  ///   - frameID: The CAN frame Arbitration identifier to be sent
+  ///   - bytes: Array of `[UInt8]` to be written to the CAN interface.  Will write >8 bytes if the hardware supports FD frames
+  /// - Returns: `Result` containing the number of bytes written to the interface or a `CANInterfaceError`
+  public func writeFrame(frameID: Int32, bytes: [UInt8]) -> Result<Int, CANInterfaceError> {
     let needsFDFrame: Bool = bytes.count > 8
     var writeResult: Int32 = -1
     if !interfaceInFDMode && needsFDFrame {
-      return -1; //TODO send a result type with error
+      return .failure(.FDCANFramesNotAvailable);
     }
     let len = Int8(truncatingIfNeeded: bytes.count)  
     _ = bytes.withContiguousStorageIfAvailable { ptr in
@@ -163,7 +198,19 @@ public class CANInterface {
       case false: writeResult = writeCANFrame(socketFD, frameID, len, UnsafeMutablePointer<UInt8>(mutating: ptr.baseAddress))
       }
     }
-    return Int(writeResult)
+    if writeResult < 0 {
+      switch errno {
+      case EINVAL: fallthrough
+      case EBADF: return .failure(.FileDescriptionNotValid)
+      case EPIPE: return .failure(.AttemptToWriteToPipeThatIsNotOpen)
+      case EFAULT: return .failure(.MemoryAccessErrorOnFrameWrite)
+      case EINTR: return .failure(.WriteWasInterruptedBeforeCompletion)
+      case EAGAIN: return .failure(.NonBlockingWriteCouldNotBeWrittenImmediately)
+      default:
+        return .failure(.UnkownWriteError)
+      }
+    }
+    return .success(Int(writeResult))
   }
   
   /// prints the frame in a Bosch CANDUMP format
@@ -190,7 +237,7 @@ public class CANInterface {
       // the odds of both delegates populated is minimal, so the creating of the frame twice is likely not superfluous
       if let rawDelegate = self.RAWlisteningDelegate {
         let frame = Frame(interface: self.interfaceName, timestamp: timestamp, frameID: UInt(truncatingIfNeeded: frame_shim.can_id), data: frame_shim.data)
-        rawDelegate.processFrame(frame: frame)
+        rawDelegate.processFrame(self, frame: frame)
       }
       if let calibrations = self.calibrations {
         let frame = Frame(interface: self.interfaceName, timestamp: timestamp, frameID: UInt(truncatingIfNeeded: frame_shim.can_id), data: frame_shim.data)

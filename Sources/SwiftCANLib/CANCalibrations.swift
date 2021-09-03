@@ -8,12 +8,23 @@
 import Foundation
 import canhelpers
 
-public protocol CANCalibrationsListener {
-  func processCalibratedData(calibratedData: CANCalibrations.CalibratedData)
+/// Delegate methods called when CAN messages are received and calibrated to engineering units.
+public protocol CANCalibrationsListenerDelegate {
+  func processCalibratedData(_ calibrations: CANCalibrations, calibratedData: CANCalibrations.CalibratedData)
 }
 
+/// The set of Calibrations translating frames from a CAN interface to engineering units.  Typically, the CANCalibrations is constructor injected to the CANInterface object.
+/// CANCalibrations stores a set of CANCalibrations.Calibration, one for each CAN frameID, and each CANCalibrations.Signal represents the the data in the frameID's payload
 public class CANCalibrations {
   
+  /// Error values that can be returned from CANCalibrations
+  public enum CANCalibrationError : Error {
+    case FrameIDNotFound
+    case NoDataToCalibrate
+    
+  }
+  
+  /// Enum representing a particular frame's endianess.  Typicall Intel based systems are little endian and Motorola based systems are big endian
   public enum Endianness {
     case bigEndian
     case littleEndian
@@ -29,6 +40,7 @@ public class CANCalibrations {
     }
   }
   
+  /// List of  the signals on a given frameID
   public struct Calibration {
     public init(frameID: UInt, signals: [CANCalibrations.Signal]) {
       self.frameID = frameID
@@ -41,6 +53,7 @@ public class CANCalibrations {
     //TODO:  init from a string from a DBC file BO_
   }
   
+  /// Information used to translate a given frame's signal into engineering units.  Typically, a frame will have multiple `Signals`
   public struct Signal {
     let name: String
     let unit: String
@@ -51,6 +64,16 @@ public class CANCalibrations {
     let offset: Double
     let gain: Double
     
+    /// Creates a new `Signal` representing the information necessary to select the data from a CAN frame's payload and convert it into engineering units
+    /// - Parameters:
+    ///   - name: Name of the signal, in engineering parlance, e.g. Engine Speed, Fuel Pressure, etc.
+    ///   - unit: Units of the signal once the `offset` and `gain` are applied
+    ///   - dataLength: Length of the data signal in the frame's payload in bits (i.e. `dataLength` of 16 means create a 2 byte raw data value
+    ///   - startBit: bit count from where the data of `dataLength` will be pulled to capture the raw data.  Must be between 0..63
+    ///   - endianness: The endianness of the bytes being selected from the frame
+    ///   - isSigned: `bool`of whether the data selected from the frame should result in a signed value'
+    ///   - offset: offset used in computing the linear calibration from Int bytes to engineering units, i.e. EU = gain * INT + offset
+    ///   - gain: gain or multiplier used in computing the linear calibration form Int bytes to engineering units, i.e. EU = gain * INT + offset
     public init(name: String, unit: String, dataLength: Int, startBit: Int, endianness: Endianness, isSigned: Bool, offset: Double, gain: Double) {
       guard dataLength <= 64 else { fatalError("SwiftCANLib: data fields larger than 64 bits are not currently supported") }
       guard startBit + dataLength <= 64 else { fatalError("SwiftCANLib: startbit + datalength spans past 64 bits, which is currently not supported") }
@@ -160,6 +183,7 @@ public class CANCalibrations {
 
     }
   }
+  /// And individual calibrated data point, including the timestamp, name and units of the datum, and the engineering units and raw value of the datum
   public struct CalibratedDatum {
     public let timestamp: TimeInterval
     public let name: String
@@ -168,20 +192,24 @@ public class CANCalibrations {
     public let rawIntData: Int64
   }
   
+  /// The set of all calibrated signals data for a given frame at a single timestamp
   public struct CalibratedData {
     public let timestamp: TimeInterval
     public let signals: [String:CalibratedDatum]
   }
   
   private var calibrations: [UInt:Calibration]
-  public private(set) var delegate: CANCalibrationsListener?
+  public private(set) var delegate: CANCalibrationsListenerDelegate?
   
-  //TODO:  We want to setup the calibrations various ways:
-  //  init from DBC file init(url: URL)
-  //  init from a Calibration for a single frame
-  //  init from an array of Calibration for multiple frames
-  //  Also want to add/delete/replace a Calibration for a frame
-  public init(calibrations: [Calibration] = [], delegate: CANCalibrationsListener?) {
+  /// Creeates a new set of `CANCalibrations` from an array of `Calibration`
+  /// - Parameters:
+  ///   - calibrations: Array of `Calibration` each element representiing the set of signals  for a frameID
+  ///   - delegate: Delegate called when new data arrives and has been successfully calibrated to engineering units
+  /// TODO:  We want to setup the calibrations various ways:
+  ///  init from DBC file init(url: URL)
+  ///  init from a Calibration for a single frame
+  ///  init from an array of Calibration for multiple frames
+  public init(calibrations: [Calibration] = [], delegate: CANCalibrationsListenerDelegate?) {
     self.calibrations = [:]
     calibrations.forEach { calibration in
       self.calibrations[calibration.frameID] = calibration
@@ -189,16 +217,25 @@ public class CANCalibrations {
     self.delegate = delegate
   }
   
+  /// Adds (or replaces) set of signals for the given frame ID
+  /// - Parameters:
+  ///   - frameID: frameID associated with the various signals
+  ///   - signals: Array of `Signal` for the calibration strategies for bytes in the payload of the given frameID
   public func addFrame(_ frameID: UInt, signals: [Signal]) {
     calibrations[frameID] = Calibration(frameID: frameID, signals: signals)
   }
   
+  /// Removes the calibrations/signals for given frameID, if it iests.
+  /// - Parameter frameID: frameID associated with the various signals
   public func removeFrame(_ frameID: UInt) {
     calibrations.removeValue(forKey: frameID)
   }
   
-  public func calibrate(frame: CANInterface.Frame) -> CalibratedData? {
-    guard let calibration = calibrations[frame.frameID] else { return nil }
+  /// Calibrates a given frame if found in the set of calibrations.  Calls the delegate with calibrated data
+  /// - Parameter frame: Swift representation of the CANFrame for calibration.
+  /// - Returns: `Result` of `CalibratedData` represending all the signals configured for the frame's payload calibrated to engineering units
+  public func calibrate(frame: CANInterface.Frame) -> Result<CalibratedData?, CANCalibrationError> {
+    guard let calibration = calibrations[frame.frameID] else { return .failure(.FrameIDNotFound) }
     
     var calibratedSignals: [String:CalibratedDatum] = [:]
     
@@ -208,12 +245,12 @@ public class CANCalibrations {
       }
     }
     
-    guard !calibratedSignals.isEmpty else { return nil }
+    guard !calibratedSignals.isEmpty else { return .failure(.NoDataToCalibrate) }
     
     let calibratedData = CalibratedData(timestamp: frame.timestamp, signals: calibratedSignals)
-    delegate?.processCalibratedData(calibratedData: calibratedData)
+    delegate?.processCalibratedData(self, calibratedData: calibratedData)
     
-    return calibratedData
+    return .success(calibratedData)
 
   }
   

@@ -8,8 +8,8 @@
 import Foundation
 
 // http://basememara.com/creating-thread-safe-arrays-in-swift/
-class ThreadSafeDictionary<Key: Hashable, Value> {
-  
+internal class ThreadSafeDictionary<Key: Hashable, Value> {
+  //implementing only the aspects required for this problem, not a generalized threadsafe dictionary
   private var dictionary: [Key:Value]
   private var queue: DispatchQueue = DispatchQueue(label: "com.leisurehoundsports.swiftcanlib.threadsafedictionary", attributes: .concurrent)
   
