@@ -6,7 +6,7 @@ This library has been tested with Rapsbian Buster, arm32 & arm64, on a Raspberry
 This is not an officially supported Google product.
 
 # How to add SwiftCANLib to your project
-In your Package.swift file add the rollowing dependency:
+In your Package.swift file add the following dependency and add `SwiftCANLib` to all targets that will use the library:
 ```
 https://github.com/leisurehound/swiftcanlib.git
 ```
@@ -14,7 +14,7 @@ Import SwiftCANLib in files where your project will interact with the CAN interf
 ```
 #import SwiftCANLib
 ```
-Create a set of signals & calibrations for the frames you're interested in:
+Create a set of signals for the data parameters you're interested in:
 ```
 let speedSignal = CANCalibrations.Signal(name: "Speed",
                                             unit: "km/h",
@@ -38,9 +38,9 @@ let frame120Calibration = CANCalibrations.Calibration(frameID: 0x120, signals: [
 ```
 Add the frame calibrations to the CANCalibrations object:
 ```
-let calibrations = CANCalibrations(calibrations: [speedCalibration, engineCalibration], delegate: self)
+let calibrations = CANCalibrations(calibrations: [frame100Calibration, frame120Calibration], delegate: self)
 ```
-Create the CANInterface object, injecting the calibrations you're interested from that interface:
+Create the CANInterface object, injecting the calibrations you're interested in processing from that interface:
 ```
 let primaryCAN = CANInterface(name: "can1", filters: [0x100,0x120], calibrations: calibrations)
 
@@ -49,11 +49,13 @@ Create a delegate object that conforms the `CANCalibrationsListenerDelegate` and
 ```
 func processCalibratedData(_ calibrations: CANCalibrations, calibratedData: CANCalibrations.CalibratedData) {
 
-  for 
+  for (signalName, datum) in calibratedData.signals {
+    print("Received data for \(signalName) of value \(datum.value) \(datum.unit)")
+  }
 
 }
-}
 ```
+Thats it!  This has been tested with Swift 5.4 on arm64 Raspberry Pi 4 and with Swift 5.1 on arm32 Raspberry Pi 3B
 
 # Caveats
 
