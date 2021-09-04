@@ -21,6 +21,7 @@ let package = Package(
     name: "SwiftCANLib",
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
+        .executable(name: "SwiftCANLibExample", targets: ["SwiftCANLibExample"]),
         .library(
             name: "SwiftCANLib",
             targets: ["SwiftCANLib"]),
@@ -42,8 +43,13 @@ let package = Package(
             dependencies: ["canhelpers",
  //                          "CSocketCAN",
             ],
-            exclude: ["canhelpers"]
+            exclude: ["canhelpers","Example"]
           ),
+        .target(
+          name: "SwiftCANLibExample",
+          dependencies: ["SwiftCANLib"],
+          path: "./Sources/SwiftCANLib/Example"
+        ),
         .testTarget(
             name: "SwiftCANLibTests",
             dependencies: ["SwiftCANLib"]),

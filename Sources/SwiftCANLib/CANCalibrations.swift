@@ -49,6 +49,7 @@ public class CANCalibrations {
   
   /// List of  the signals on a given frameID
   public struct Calibration {
+    //TODO: maybe this would be better as simply a dictionayr of [UInt:[Signal]]
     public init(frameID: UInt, signals: [CANCalibrations.Signal]) {
       self.frameID = frameID
       self.signals = signals
