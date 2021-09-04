@@ -57,17 +57,17 @@ func processCalibratedData(_ calibrations: CANCalibrations, calibratedData: CANC
 ```
 Thats it!  This has been tested with Swift 5.4 on arm64 Raspberry Pi 4 and with Swift 5.1 on arm32 Raspberry Pi 3B.
 
-SwiftCANLib performs its listening on each CAN interface on its own queue; you can direct SwiftCANLib to return data to you on an thread you specify, or it will default to `DispatchQueue.main`
+SwiftCANLib performs its listening on each CAN interface on its own queue; you can direct SwiftCANLib to return data to you on an thread you specify, or it will default to calling the delegate on `DispatchQueue.main`.
 
 # Caveats
 
-The library supports both little and big endian frames on big and little endian platforms.  However, there are currently no big endian platforms that support Swift, thus running on a big endian platform is complete untested.  Big and little endian frames on a little endian platform is supported and tested by unit tests.
+The library supports both little and big endian frames on big and little endian platforms.  However, there are currently no big endian platforms that support Swift, thus running on a big endian platform is completely untested.  Big and little endian frames on a little endian platform is supported and tested by unit tests.
 
 Note that SwiftCANLib does not use SOCKETCAN directly.  Swift currently will not link correctly against a CSocketCAN module on Linux thus a C language bridge module is utlized to make the SOCKETCAN calls.
 
 SwiftCANLib will not compile and run on macOS/iOS/iPadOS/tvOS because SOCKETCAN is not distributed on these platforms.
 
-Utlizing Combine for feeding CAN frames to client applications would be awesome.  However Apple has not open sourced Combine thus it has not been ported to Linux.
+Utlizing Combine for feeding CAN frames to client applications would be awesome.  However Apple has not open sourced Combine thus it has not been ported to Linux and SwiftCANLib uses a simple delegate pattern for providing data the client application.
 
 # License
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License.
