@@ -13,7 +13,11 @@
 //  limitations under the License.
 
 import Foundation
+#if os(macOS)
+import mockcanhelpers
+#elseif os(Linux)
 import canhelpers
+#endif
 
 /// Delegate methods called when CAN messages are received and calibrated to engineering units.
 public protocol CANCalibrationsListenerDelegate {

@@ -13,7 +13,11 @@
 //  limitations under the License.
 
 import Foundation
+#if os(macOS)
+import mockcanhelpers
+#elseif os(Linux)
 import canhelpers
+#endif
 
 private let SIZEOF_CANFD_FRAME = sizeofCANFDFrame()
 private let SIZEOF_CAN_FRAME = sizeofCANFrame()

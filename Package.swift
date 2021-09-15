@@ -17,6 +17,42 @@
 
 import PackageDescription
 
+#if os(macOS) || os(tvOS) || os(iOS)  // can seem to add this #if in the targets array which is where the only different is.
+let package = Package(
+    name: "SwiftCANLib",
+    products: [
+        // Products define the executables and libraries a package produces, and make them visible to other packages.
+        .executable(name: "SwiftCANLibExample", targets: ["SwiftCANLibExample"]),
+        .library(
+            name: "SwiftCANLib",
+            targets: ["SwiftCANLib"]),
+    ],
+    dependencies: [
+//      .package(path: "./CSocketCAN"),
+    ],
+    targets: [
+        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
+        // Targets can depend on other targets in this package, and on products in packages this package depends on.
+        .target(name: "mockcanhelpers",
+            dependencies: [],
+            exclude: ["SwiftCANLib", "canhelpers"],
+            cSettings: [.headerSearchPath("Internal"),]),
+        .target(
+            name: "SwiftCANLib",
+            dependencies: ["mockcanhelpers",],
+            exclude: ["canhelpers","Example","mockcanhelpers"]
+          ),
+        .target(
+          name: "SwiftCANLibExample",
+          dependencies: ["SwiftCANLib"],
+          path: "./Sources/SwiftCANLib/Example"
+        ),
+        .testTarget(
+            name: "SwiftCANLibTests",
+            dependencies: ["SwiftCANLib"]),
+    ]
+)
+#else // linux
 let package = Package(
     name: "SwiftCANLib",
     products: [
@@ -35,15 +71,13 @@ let package = Package(
         .target(
             name: "canhelpers",
             dependencies: [],
-            exclude: ["SwiftCANLib"],
+            exclude: ["SwiftCANLib", "mockcanhelpers"],
             cSettings: [.headerSearchPath("Internal"),]
         ),
         .target(
             name: "SwiftCANLib",
-            dependencies: ["canhelpers",
- //                          "CSocketCAN",
-            ],
-            exclude: ["canhelpers","Example"]
+            dependencies: ["canhelpers",],
+            exclude: ["canhelpers","Example","mockcanhelpers"]
           ),
         .target(
           name: "SwiftCANLibExample",
@@ -55,3 +89,4 @@ let package = Package(
             dependencies: ["SwiftCANLib"]),
     ]
 )
+#endif

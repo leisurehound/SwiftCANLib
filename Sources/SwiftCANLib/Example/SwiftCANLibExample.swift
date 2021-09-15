@@ -17,6 +17,8 @@ import SwiftCANLib
 
 class SwiftCANLibExampleProcessor : CANCalibrationsListenerDelegate {
   
+  private var primaryCAN: CANInterface? = nil
+  
   init() {
     
     // Setup the signals that you want to calibrate
@@ -44,8 +46,7 @@ class SwiftCANLibExampleProcessor : CANCalibrationsListenerDelegate {
     
     // Create the CANInterface with the appropriate canlibrations for frames you are intrested in
     // If the inititialization is successful, the interface starts listening immediately
-    let primaryCAN = CANInterface(name: "can1", filters: [0x100,0x120], calibrations: calibrations)
-    
+    primaryCAN = CANInterface(name: "can1", filters: [0x100,0x120], calibrations: calibrations)
     
   }
   
