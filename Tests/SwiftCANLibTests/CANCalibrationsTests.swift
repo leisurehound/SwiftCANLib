@@ -48,6 +48,23 @@ class CANCalibrationTests: XCTestCase {
   
   // Same endianness tests
   //   Two Byte tests
+  
+  func testLestThanTwoByteSignalWithSameEndianessndNoCalibrationFactor() throws {
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .littleEndian : .bigEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 12, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
+    
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x67, 0x00])
+    
+    let calibratedVaue = signal.calibrate(frame: frame)
+    
+    var expectedValue: UInt16 = 0x00
+    switch endianness {
+    case .littleEndian: expectedValue = UInt16(0x00) * 2 << 7 + UInt16(0x67)
+    case .bigEndian: expectedValue = UInt16(0x67) * 2 << 7 + UInt16(0x00)
+    }
+    
+    XCTAssertEqual(calibratedVaue!.value, Double(expectedValue), accuracy: 0.01)
+  }
 
     func testTwoByteSignalWithSameEndianessShortPayloadndNoCalibrationFactor() throws {
       let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .littleEndian : .bigEndian
@@ -291,6 +308,23 @@ func testTwoByteSignalBeginningPayloadWithSameEndianessFullPayloadAndNoCalibrati
   
   //Opposite Endianness tests
   //Two byte tests
+  
+  func testLestThanTwoByteSignalWithOppositeEndianessndNoCalibrationFactor() throws {
+    let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .bigEndian : .littleEndian
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 12, startBit: 0, endianness: endianness, isSigned: false, offset: 0, gain: 1.0)
+    
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x67])
+    
+    let calibratedVaue = signal.calibrate(frame: frame)
+    
+    var expectedValue: UInt16 = 0x00
+    switch endianness {
+    case .littleEndian: expectedValue = UInt16(0x67) * 2 << 7 + UInt16(0x00)
+    case .bigEndian: expectedValue = UInt16(0x00) * 2 << 7 + UInt16(0x67)
+    }
+    
+    XCTAssertEqual(calibratedVaue!.value, Double(expectedValue), accuracy: 0.01)
+  }
   
     func testTwoByteSignalWithOppositeEndianessShortPayloadndNoCalibrationFactor() throws {
       let endianness: CANCalibrations.Endianness = CANCalibrations.Endianness.systemEndianness == .littleEndian ? .bigEndian : .littleEndian

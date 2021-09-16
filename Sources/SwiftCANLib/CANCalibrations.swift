@@ -121,6 +121,12 @@ public class CANCalibrations {
         for _ in 0..<dataLength {
           mask = mask << 1 | 1
         }
+        if dataLength % 8 != 0 {
+          let numBytes: Int = dataLength / 8 + 1
+          for _ in 0..<numBytes*8-dataLength {
+            mask = mask << 1 | 0
+          }
+        }
         mask = mask.byteSwapped
         intValue = intValue & mask
       } else {
@@ -128,6 +134,12 @@ public class CANCalibrations {
         var mask: UInt64 = 0
         for _ in 0..<dataLength {
           mask = mask << 1 | 1
+        }
+        if endianness == .bigEndian && dataLength % 8 != 0 {
+          let numBytes: Int = dataLength / 8 + 1
+          for _ in 0..<numBytes*8-dataLength {
+            mask = mask << 1 | 0
+          }
         }
         intValue = intValue & mask
       }
