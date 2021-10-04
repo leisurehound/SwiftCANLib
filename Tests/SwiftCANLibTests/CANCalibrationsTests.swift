@@ -46,6 +46,22 @@ class CANCalibrationTests: XCTestCase {
     XCTAssertEqual(calibratedVaue!.value, Double(0x05) * gain + offset, accuracy: 0.01)
   }
   
+  func testOneBitSetSignalFullPayloadNoCalibrationFactor() throws {
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 1, startBit: 23, endianness: .littleEndian, isSigned: false, offset: 0, gain: 1.0)
+    
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x01, 0xBF, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let calibratedVaue = signal.calibrate(frame: frame)
+    XCTAssertEqual(calibratedVaue!.value, Double(0x01), accuracy: 0.01)
+  }
+  
+  func testOneBitUnsetSignalFullPayloadNoCalibrationFactor() throws {
+    let signal = CANCalibrations.Signal(name: "Engine Speed", unit: "RPM", dataLength: 1, startBit: 23, endianness: .bigEndian, isSigned: false, offset: 0, gain: 1.0)
+    
+    let frame = CANInterface.Frame(interface: "Can1", timestamp: 0.0, frameID: 0x001, data: [0x00, 0x00, 0x3F, 0x03, 0x04, 0x05, 0x06, 0x07])
+    let calibratedVaue = signal.calibrate(frame: frame)
+    XCTAssertEqual(calibratedVaue!.value, Double(0x00), accuracy: 0.01)
+  }
+  
   // Same endianness tests
   //   Two Byte tests
   
