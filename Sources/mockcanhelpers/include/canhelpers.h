@@ -17,17 +17,17 @@
 
 #include <sys/socket.h>
 
-int systemIsLittleEndian();
+int IsSystemLittleEndian();
 
-int getInterfaceIndex(int fd, char *name);
-int getCANSocket();
-int bindCANSocket(int fd, int ifr_index, struct sockaddr *addr);
-int tryCANFDOnSocket(int fd);
-int setCANFrameFilters(int fd, int *filters, int count);
-int sizeofCANFDFrame();
-int sizeofCANFrame();
-void startListening(int fd, struct sockaddr *addr);
-int writeCANFrame(int fd, int32_t id, char len, unsigned char *data);
-int writeCANFDFrame(int fd, int32_t id, char len, unsigned char *data);
+int GetInterfaceIndex(int fd, char *name);
+int GetCANSocket();
+int BindCANSocket(int fd, int ifr_index, struct sockaddr *addr);
+int TryCANFDOnSocket(int fd);
+int SetCANFrameFilters(int fd, int *filters, int count);
+int SizeofCANFDFrame();
+int SizeofCANFrame();
+void StartListening(int fd, struct sockaddr *addr);
+int WriteCANFrame(int fd, int32_t id, char len, unsigned char *data);
+int WriteCANFDFrame(int fd, int32_t id, char len, unsigned char *data);
 
 #endif /* __CANHELPERS.H__ */

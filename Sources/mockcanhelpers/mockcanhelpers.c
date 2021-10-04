@@ -15,33 +15,33 @@
 #include "./include/canhelpers.h"
 
 
-int getInterfaceIndex(int fd, char *name) {
+int GetInterfaceIndex(int fd, char *name) {
   return 1;
 }
-int getCANSocket() {
+int GetCANSocket() {
   return 6;
 }
-int bindCANSocket(int fd, int ifr_index, struct sockaddr *addr) {
+int BindCANSocket(int fd, int ifr_index, struct sockaddr *addr) {
   return 0;
 }
-int tryCANFDOnSocket(int fd) {
+int TryCANFDOnSocket(int fd) {
   return 0;
 }
-int setCANFrameFilters(int fd, int *filters, int count) {
+int SetCANFrameFilters(int fd, int *filters, int count) {
   return 0;
 }
-int sizeofCANFDFrame() {
+int SizeofCANFDFrame() {
   return 80;
 }
-int sizeofCANFrame() {
+int SizeofCANFrame() {
   return 30;
 }
-void startListening(int fd, struct sockaddr *addr) {
+void StartListening(int fd, struct sockaddr *addr) {
   
 }
-int writeCANFrame(int fd, int32_t id, char len, unsigned char *data) {
+int WriteCANFrame(int fd, int32_t id, char len, unsigned char *data) {
   return 0;
 }
-int writeCANFDFrame(int fd, int32_t id, char len, unsigned char *data) {
+int WriteCANFDFrame(int fd, int32_t id, char len, unsigned char *data) {
   return 0;
 }

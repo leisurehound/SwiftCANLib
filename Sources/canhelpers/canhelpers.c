@@ -42,7 +42,7 @@
 
 #include "include/canhelpers.h"
 
-int systemIsLittleEndian() {
+int IsSystemLittleEndian() {
   short int twoByteInt = 1;
   char * firstByte = (char *) &twoByteInt;
   
@@ -50,7 +50,7 @@ int systemIsLittleEndian() {
   
 }
 
-int getInterfaceIndex(int fd, char *name) {
+int GetInterfaceIndex(int fd, char *name) {
 /// returns interface index of the can interface represented by name
   struct ifreq ifr;
   memset(&ifr.ifr_name, 0, sizeof(ifr.ifr_name));
@@ -60,7 +60,7 @@ int getInterfaceIndex(int fd, char *name) {
   return ifr.ifr_ifindex;
 }
 
-int getCANSocket() {
+int GetCANSocket() {
 /// simply creates the socket file descriptor configured for CAN
   int fd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (fd < 0) { return fd; }
@@ -69,7 +69,7 @@ int getCANSocket() {
   return fd;
 }
 
-int bindCANSocket(int fd, int ifr_index, struct sockaddr *sockAddr) {
+int BindCANSocket(int fd, int ifr_index, struct sockaddr *sockAddr) {
 /// binds the ifr_index interface to the socket file descriptor FD and returns the sockAddr stuct
   struct sockaddr_can addr;
   memset(&addr, 0, sizeof(addr));
@@ -79,12 +79,12 @@ int bindCANSocket(int fd, int ifr_index, struct sockaddr *sockAddr) {
   return ret;
 }
 
-int tryCANFDOnSocket(int fd) {
+int TryCANFDOnSocket(int fd) {
   const int canfd_on = 1;
   return setsockopt(fd, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &canfd_on, sizeof(canfd_on));
 }
 
-int setCANFrameFilters(int fd, int *filters, int count) {
+int SetCANFrameFilters(int fd, int *filters, int count) {
   struct can_filter can_filters[count];
   
   for (int i = 0; i < count; i++) {
@@ -94,11 +94,11 @@ int setCANFrameFilters(int fd, int *filters, int count) {
   return setsockopt(fd, SOL_CAN_RAW, CAN_RAW_FILTER, can_filters, count * sizeof(struct can_filter));  
 }
                     
-int sizeofCANFDFrame() {
+int SizeofCANFDFrame() {
   return sizeof(struct canfd_frame);
 }
 
-int sizeofCANFrame() {
+int SizeofCANFrame() {
   return sizeof(struct can_frame);
 }
 
@@ -110,7 +110,7 @@ intptr_t invoke_listeningDelegate(intptr_t fd, void *frame, intptr_t tv_sec, int
  
 static struct timeval base_tv = (struct timeval){0};
 
-void startListening(int fd, struct sockaddr *addr) {
+void StartListening(int fd, struct sockaddr *addr) {
 /// starts listening on the socket and bridges frames back to swift via the listeningDelegate
   fd_set rdfs;
   struct canfd_frame frame;
@@ -184,7 +184,7 @@ void startListening(int fd, struct sockaddr *addr) {
   }
   return;
 }
-int writeCANFrame(int fd, int32_t id, char len,  unsigned char *data) {
+int WriteCANFrame(int fd, int32_t id, char len,  unsigned char *data) {
   
   if (len > 8)
     return -1;
@@ -200,7 +200,7 @@ int writeCANFrame(int fd, int32_t id, char len,  unsigned char *data) {
   return write(fd, &frame, sizeof(frame));
 }
 
-int writeCANFDFrame(int fd, int32_t id, char len, unsigned char *data) {
+int WriteCANFDFrame(int fd, int32_t id, char len, unsigned char *data) {
 
   if (len > 64)
     return -1;

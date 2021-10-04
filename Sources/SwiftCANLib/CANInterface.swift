@@ -19,8 +19,8 @@ import mockcanhelpers
 import canhelpers
 #endif
 
-private let SIZEOF_CANFD_FRAME = sizeofCANFDFrame()
-private let SIZEOF_CAN_FRAME = sizeofCANFrame()
+private let SIZEOF_CANFD_FRAME = SizeofCANFDFrame()
+private let SIZEOF_CAN_FRAME = SizeofCANFrame()
 
 /// Bridging global delegate method whre the C module will call with CAN messages.  Looks up the instance of the message by the
 /// socket file descriptor and forwards to that instance method for processing back to Swift.  This ideally would be a private method, but
@@ -143,20 +143,20 @@ public class CANInterface {
 
      
     // have to defer this call to C because the parameters PF_CAN, SOCK_RAW & CAN_RAW are not symbols available to swift
-    socketFD = getCANSocket()
+    socketFD = GetCANSocket()
     if socketFD < 0 {
       return nil
     }
     listeningQueue = DispatchQueue(label: "com.leisurehoundsports.swiftcanlib.listenqueue-\(socketFD)-\(interfaceName)")
     
     // try to put the interface into CAN FD mode
-    interfaceInFDMode = tryCANFDOnSocket(socketFD) == 0
+    interfaceInFDMode = TryCANFDOnSocket(socketFD) == 0
     
     // set the interface frame id filters, force sets a 0x7ff mask, the most typical
     if !filters.isEmpty {
       var filterSetResult: Int32 = 0
       _ = filters.withContiguousStorageIfAvailable { ptr in
-        filterSetResult = setCANFrameFilters(socketFD, UnsafeMutablePointer<Int32>(mutating: ptr.baseAddress), Int32(truncatingIfNeeded: filters.count))
+        filterSetResult = SetCANFrameFilters(socketFD, UnsafeMutablePointer<Int32>(mutating: ptr.baseAddress), Int32(truncatingIfNeeded: filters.count))
       }
       if filterSetResult < 0 { return nil }
     }
@@ -165,12 +165,12 @@ public class CANInterface {
     let interfaceNameNS = NSString(string: interfaceName)
     let interfaceNamePtr = UnsafeMutablePointer<CChar>(mutating: interfaceNameNS.utf8String)
 
-    let index = getInterfaceIndex(socketFD, interfaceNamePtr)
+    let index = GetInterfaceIndex(socketFD, interfaceNamePtr)
     
     // binding to socketcan directly in swift requires the import CSocketCan to work, but libsocketcan is not found
     // when setting the path directly to /usr/lib/arm.../libsocketcan.so.2 it then can't fund CDispatch or Dispatch
     //let bindResult = bind(socketFD, &addr, UInt32(MemoryLayout<sockaddr_can>.size))
-    let bindResult = bindCANSocket(socketFD, index, &addr);
+    let bindResult = BindCANSocket(socketFD, index, &addr);
 
     if bindResult < 0 {
         return nil
@@ -179,7 +179,7 @@ public class CANInterface {
     CANInterface.fdToCANInterfaceMap[socketFD] = self
     listeningQueue.async {
       // this should never return.
-      startListening(self.socketFD, &self.addr)
+      StartListening(self.socketFD, &self.addr)
     }
   }
   
@@ -205,8 +205,8 @@ public class CANInterface {
     let len = Int8(truncatingIfNeeded: bytes.count)  
     _ = bytes.withContiguousStorageIfAvailable { ptr in
       switch needsFDFrame {
-      case true: writeResult = writeCANFDFrame(socketFD, frameID, len, UnsafeMutablePointer<UInt8>(mutating: ptr.baseAddress))
-      case false: writeResult = writeCANFrame(socketFD, frameID, len, UnsafeMutablePointer<UInt8>(mutating: ptr.baseAddress))
+      case true: writeResult = WriteCANFDFrame(socketFD, frameID, len, UnsafeMutablePointer<UInt8>(mutating: ptr.baseAddress))
+      case false: writeResult = WriteCANFrame(socketFD, frameID, len, UnsafeMutablePointer<UInt8>(mutating: ptr.baseAddress))
       }
     }
     if writeResult < 0 {
