@@ -165,7 +165,7 @@ public class CANInterface {
     let interfaceNameNS = NSString(string: interfaceName)
     let interfaceNamePtr = UnsafeMutablePointer<CChar>(mutating: interfaceNameNS.utf8String)
 
-    let index = GetInterfaceIndex(socketFD, interfaceNamePtr)
+    let index = GetInterfaceIndex(interfaceNamePtr)
     
     // binding to socketcan directly in swift requires the import CSocketCan to work, but libsocketcan is not found
     // when setting the path directly to /usr/lib/arm.../libsocketcan.so.2 it then can't fund CDispatch or Dispatch

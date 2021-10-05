@@ -21,7 +21,7 @@
 int IsSystemLittleEndian();
 
 /// Returns the index of the interface for the given interface name, eg. can1, can0, etc.
-int GetInterfaceIndex(int fd, char *name);
+int GetInterfaceIndex(char *name);
 
 /// Creates the socket configured for CAN frames but does not bind the socket, returns the socket file descriptor or -1 for error
 int GetCANSocket();

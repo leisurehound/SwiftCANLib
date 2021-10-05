@@ -15,7 +15,7 @@
 #include "./include/canhelpers.h"
 
 
-int GetInterfaceIndex(int fd, char *name) {
+int GetInterfaceIndex(char *name) {
   return 1;
 }
 int GetCANSocket() {

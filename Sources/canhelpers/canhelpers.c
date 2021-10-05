@@ -44,13 +44,11 @@
 
 int IsSystemLittleEndian() {
   short int twoByteInt = 1;
-  char * firstByte = (char *) &twoByteInt;
-  
+  char *firstByte = (char *) &twoByteInt;
   return *firstByte == twoByteInt;
-  
 }
 
-int GetInterfaceIndex(int fd, char *name) {
+int GetInterfaceIndex(char *name) {
 /// returns interface index of the can interface represented by name
   struct ifreq ifr;
   memset(&ifr.ifr_name, 0, sizeof(ifr.ifr_name));

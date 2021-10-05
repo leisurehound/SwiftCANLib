@@ -19,7 +19,7 @@
 
 int IsSystemLittleEndian();
 
-int GetInterfaceIndex(int fd, char *name);
+int GetInterfaceIndex(char *name);
 int GetCANSocket();
 int BindCANSocket(int fd, int ifr_index, struct sockaddr *addr);
 int TryCANFDOnSocket(int fd);
