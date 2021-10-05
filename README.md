@@ -33,12 +33,12 @@ let rpmSignal = CANCalibrations.Signal(name: "Engine Speed",
 ```
 Add signals to a frame calibration:
 ```
-let frame100Calibration = CANCalibrations.Calibration(frameID: 0x100, signals: [speedSignal])
-let frame120Calibration = CANCalibrations.Calibration(frameID: 0x120, signals: [rpmSignal])
+let frame100Calibration = CANCalibrations.FrameDefinition(frameID: 0x100, signals: [speedSignal])
+let frame120Calibration = CANCalibrations.FrameDefinition(frameID: 0x120, signals: [rpmSignal])
 ```
 Add the frame calibrations to the CANCalibrations object:
 ```
-let calibrations = CANCalibrations(calibrations: [frame100Calibration, frame120Calibration], delegate: self)
+let calibrations = CANCalibrations(frames: [frame100Calibration, frame120Calibration], delegate: self)
 ```
 Create the CANInterface object, injecting the calibrations you're interested in processing from that interface:
 ```
