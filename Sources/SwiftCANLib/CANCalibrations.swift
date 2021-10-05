@@ -52,8 +52,8 @@ public class CANCalibrations {
   }
   
   /// List of  the signals on a given frameID
-  public struct Calibration {
-    //TODO: maybe this would be better as simply a dictionayr of [UInt:[Signal]]
+  public struct FrameDefinition {
+    //TODO: maybe this would be better as simply a dictionary of [UInt:[Signal]]
     public init(frameID: UInt, signals: [CANCalibrations.Signal]) {
       self.frameID = frameID
       self.signals = signals
@@ -62,7 +62,7 @@ public class CANCalibrations {
     public let frameID: UInt
     public let signals: [Signal]
     
-    //TODO:  init from a string from a DBC file BO_
+    //TODO:  init from a string from a DBC file
   }
   
   /// Information used to translate a given frame's signal into engineering units.  Typically, a frame will have multiple `Signals`
@@ -222,21 +222,21 @@ public class CANCalibrations {
     public let signals: [String:CalibratedDatum]
   }
   
-  private var calibrations: [UInt:Calibration]
+  private var frameDefinitions: [UInt:FrameDefinition]
   public private(set) var delegate: CANCalibrationsListenerDelegate?
   
   /// Creeates a new set of `CANCalibrations` from an array of `Calibration`
   /// - Parameters:
-  ///   - calibrations: Array of `Calibration` each element representiing the set of signals  for a frameID
+  ///   - frames: Array of `Calibration` each element representiing the set of signals  for a frameID
   ///   - delegate: Delegate called when new data arrives and has been successfully calibrated to engineering units
   /// TODO:  We want to setup the calibrations various ways:
   ///  init from DBC file init(url: URL)
   ///  init from a Calibration for a single frame
   ///  init from an array of Calibration for multiple frames
-  public init(calibrations: [Calibration] = [], delegate: CANCalibrationsListenerDelegate?) {
-    self.calibrations = [:]
-    calibrations.forEach { calibration in
-      self.calibrations[calibration.frameID] = calibration
+  public init(frames: [FrameDefinition] = [], delegate: CANCalibrationsListenerDelegate?) {
+    self.frameDefinitions = [:]
+    frames.forEach { calibration in
+      self.frameDefinitions[calibration.frameID] = calibration
     }
     self.delegate = delegate
   }
@@ -246,20 +246,20 @@ public class CANCalibrations {
   ///   - frameID: frameID associated with the various signals
   ///   - signals: Array of `Signal` for the calibration strategies for bytes in the payload of the given frameID
   public func addFrame(_ frameID: UInt, signals: [Signal]) {
-    calibrations[frameID] = Calibration(frameID: frameID, signals: signals)
+    frameDefinitions[frameID] = FrameDefinition(frameID: frameID, signals: signals)
   }
   
   /// Removes the calibrations/signals for given frameID, if it iests.
   /// - Parameter frameID: frameID associated with the various signals
   public func removeFrame(_ frameID: UInt) {
-    calibrations.removeValue(forKey: frameID)
+    frameDefinitions.removeValue(forKey: frameID)
   }
   
   /// Calibrates a given frame if found in the set of calibrations.  Calls the delegate with calibrated data
   /// - Parameter frame: Swift representation of the CANFrame for calibration.
   /// - Returns: `Result` of `CalibratedData` represending all the signals configured for the frame's payload calibrated to engineering units
   public func calibrate(frame: CANInterface.Frame) -> Result<CalibratedData?, CANCalibrationError> {
-    guard let calibration = calibrations[frame.frameID] else { return .failure(.FrameIDNotFound) }
+    guard let calibration = frameDefinitions[frame.frameID] else { return .failure(.FrameIDNotFound) }
     
     var calibratedSignals: [String:CalibratedDatum] = [:]
     

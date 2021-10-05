@@ -38,11 +38,11 @@ class SwiftCANLibExampleProcessor : CANCalibrationsListenerDelegate {
                                                 gain: 1.0)
     
     // Added the signals to the various frame calibrations where those signals are sent
-    let frame100Calibration = CANCalibrations.Calibration(frameID: 0x100, signals: [speedSignal])
-    let frame120Calibration = CANCalibrations.Calibration(frameID: 0x120, signals: [rpmSignal])
+    let frame100Calibration = CANCalibrations.FrameDefinition(frameID: 0x100, signals: [speedSignal])
+    let frame120Calibration = CANCalibrations.FrameDefinition(frameID: 0x120, signals: [rpmSignal])
     
     // Add all the frame calibrations to CANCalibrations
-    let calibrations = CANCalibrations(calibrations: [frame100Calibration, frame120Calibration], delegate: self)
+    let calibrations = CANCalibrations(frames: [frame100Calibration, frame120Calibration], delegate: self)
     
     // Create the CANInterface with the appropriate canlibrations for frames you are intrested in
     // If the inititialization is successful, the interface starts listening immediately

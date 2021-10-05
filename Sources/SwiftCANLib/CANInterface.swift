@@ -55,7 +55,7 @@ public class CANInterface {
     let data: [UInt8]
   }
   
-  private struct swift_canfd_frame_shim {
+  private struct SwiftCANFDFrameShim {
     var can_id: UInt32
     var len : UInt8
     var flags: UInt8
@@ -225,7 +225,7 @@ public class CANInterface {
   }
   
   /// prints the frame in a Bosch CANDUMP format
-  private func candump(frame: swift_canfd_frame_shim, timestamp: TimeInterval) {
+  private func candump(frame: SwiftCANFDFrameShim, timestamp: TimeInterval) {
 
     var candump: String = "\(String(format: "%012.3f", timestamp)) \(interfaceName) \(String(format:"%02X", frame.can_id))"
     candump += " [\(frame.len)] "
@@ -238,7 +238,7 @@ public class CANInterface {
   /// Bridge from the c-decl delegate from the C side, simply builds data info a FrameShim which then passes on to the interface delegate
   internal func frameProcessingBridge(data: Data, timestamp: TimeInterval) {
     
-    guard let frame_shim = swift_canfd_frame_shim(from: data) else { return }
+    guard let frame_shim = SwiftCANFDFrameShim(from: data) else { return }
     
     if candumpToConsole {
       candump(frame: frame_shim, timestamp: timestamp)

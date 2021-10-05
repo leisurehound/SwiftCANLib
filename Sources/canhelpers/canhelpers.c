@@ -49,7 +49,7 @@ int IsSystemLittleEndian() {
 }
 
 int GetInterfaceIndex(char *name) {
-/// returns interface index of the can interface represented by name
+/// returns interface index of the can interface represented by name, e.g. can0, can1, etc.
   struct ifreq ifr;
   memset(&ifr.ifr_name, 0, sizeof(ifr.ifr_name));
   strncpy(ifr.ifr_name, name, strlen(name));
@@ -191,10 +191,8 @@ int WriteCANFrame(int fd, int32_t id, char len,  unsigned char *data) {
 
   frame.can_id = id;
   frame.can_dlc = len;
-
-  for (int i = 0; i < len; i++) {
-    frame.data[i] = data[i];
-  }
+  
+  memcpy(frame.data, data, len);
   return write(fd, &frame, sizeof(frame));
 }
 
@@ -206,9 +204,7 @@ int WriteCANFDFrame(int fd, int32_t id, char len, unsigned char *data) {
   struct canfd_frame frame = (struct canfd_frame){0};
   frame.can_id = id;
   frame.len = len;
-  for (int i = 0; i < len; i++) {
-    frame.data[i] = data[i];
-  }
 
+  memcpy(frame.data, data, len);
   return write(fd, &frame, sizeof(frame));
 }
