@@ -40,9 +40,10 @@ Add the frame calibrations to the CANCalibrations object:
 ```
 let calibrations = CANCalibrations(frames: [frame100Calibration, frame120Calibration], delegate: self)
 ```
-Create the CANInterface object, injecting the calibrations you're interested in processing from that interface:
+Create the CANInterface object, injecting the calibrations you're interested in processing from that interface and start listening:
 ```
 let primaryCAN = CANInterface(name: "can1", filters: [0x100,0x120], calibrations: calibrations)
+primaryCAN?.startListening()
 
 ```
 Create a delegate object that conforms the `CANCalibrationsListenerDelegate` and implement the `processCalibratedData` method:

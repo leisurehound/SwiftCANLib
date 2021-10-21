@@ -43,7 +43,7 @@ int SizeofCANFrame();
 
 /// a blocking call to start listening for can frames, each frame received is returned on the configured delegate
 /// NOTE:  do not start this on the main thread
-void StartListening(int fd, struct sockaddr *addr);
+void StartListening(int fd, struct sockaddr *addr, int *running);
 
 /// Write a standard CAN frame to the socket, returns 0 on success
 int WriteCANFrame(int fd, int32_t id, char len, unsigned char *data);

@@ -112,6 +112,7 @@ public class CANInterface {
   private let interfaceInFDMode: Bool
   private let filters: [Int32]
   private let calibrations: CANCalibrations?
+  private var isListening: Int32 = 0 // a C Bool!
   
   private let RAWlisteningDelegate: CANInterfaceRAWListeningDelegate?
   
@@ -177,10 +178,7 @@ public class CANInterface {
     }
 
     CANInterface.fdToCANInterfaceMap[socketFD] = self
-    listeningQueue.async {
-      // this should never return.
-      StartListening(self.socketFD, &self.addr)
-    }
+
   }
   
   
@@ -188,6 +186,18 @@ public class CANInterface {
     if socketFD > 0 {
       close(socketFD)
     }
+  }
+
+  public func startListening() {
+    isListening = 1
+    listeningQueue.async {
+      // this should never return.
+      StartListening(self.socketFD, &self.addr, &self.isListening)
+    }
+  }
+
+  public func stopListening() {
+    isListening = 0
   }
   
   

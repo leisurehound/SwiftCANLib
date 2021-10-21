@@ -36,7 +36,7 @@ int SizeofCANFDFrame() {
 int SizeofCANFrame() {
   return 30;
 }
-void StartListening(int fd, struct sockaddr *addr) {
+void StartListening(int fd, struct sockaddr *addr, int *running) {
   
 }
 int WriteCANFrame(int fd, int32_t id, char len, unsigned char *data) {

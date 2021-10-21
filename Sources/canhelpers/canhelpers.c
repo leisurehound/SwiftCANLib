@@ -108,7 +108,7 @@ intptr_t invoke_listeningDelegate(intptr_t fd, void *frame, intptr_t tv_sec, int
  
 static struct timeval base_tv = (struct timeval){0};
 
-void StartListening(int fd, struct sockaddr *addr) {
+void StartListening(int fd, struct sockaddr *addr, int *running) {
 /// starts listening on the socket and bridges frames back to swift via the listeningDelegate
   fd_set rdfs;
   struct canfd_frame frame;
@@ -125,14 +125,13 @@ void StartListening(int fd, struct sockaddr *addr) {
   msg.msg_iovlen = 1;
   msg.msg_control = &ctrlmsg;
 
-  int running = 1;
-  while(running) {
+  while(*running) {
 
     FD_ZERO(&rdfs);
     FD_SET(fd, &rdfs);
 
-    // the last parameter is the wait timeout, when set to NULL, the select call blocks indefinition
-    // (but not a spin busy block
+    // the last parameter is the wait timeout, when set to NULL, the select call blocks indefinitely
+    // (but not a spin busy block)
     if (select(fd+1, &rdfs, NULL, NULL, NULL) < 0) {
       running = 0;
       continue;

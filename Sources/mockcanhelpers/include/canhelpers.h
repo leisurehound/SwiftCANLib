@@ -26,7 +26,7 @@ int TryCANFDOnSocket(int fd);
 int SetCANFrameFilters(int fd, int *filters, int count);
 int SizeofCANFDFrame();
 int SizeofCANFrame();
-void StartListening(int fd, struct sockaddr *addr);
+void StartListening(int fd, struct sockaddr *addr, int *running);
 int WriteCANFrame(int fd, int32_t id, char len, unsigned char *data);
 int WriteCANFDFrame(int fd, int32_t id, char len, unsigned char *data);
 
