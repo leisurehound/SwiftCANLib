@@ -125,8 +125,6 @@ void StartListening(int fd, struct sockaddr *addr, int *running) {
   msg.msg_iovlen = 1;
   msg.msg_control = &ctrlmsg;
 
-  printf("In Start listening, and *running is %d\n", *running);
-
   while(*running) {
 
     FD_ZERO(&rdfs);
@@ -178,11 +176,9 @@ void StartListening(int fd, struct sockaddr *addr, int *running) {
         timediff.tv_sec = tv.tv_sec - base_tv.tv_sec;
         timediff.tv_usec = tv.tv_usec - base_tv.tv_usec;
       }
-      printf("In startListening loop with frame %03x\n", frame.can_id);
       invoke_listeningDelegate(fd, &frame, timediff.tv_sec, timediff.tv_usec);
     }
   }
-  printf("Exiting StartListening with *running %d\n", *running);
   return;
 }
 int WriteCANFrame(int fd, int32_t id, char len,  unsigned char *data) {
