@@ -87,6 +87,10 @@ public class CANInterface {
   }
   
   public enum CANInterfaceError : Error {
+    case InterfaceNameTooLong
+    case CreateSocketFailed
+    case SetSockOptFiltersFailed
+    case BindToSocketFailed
     case FDCANFramesNotAvailable
     case FileDescriptionNotValid
     case AttemptToWriteToPipeThatIsNotOpen
@@ -124,16 +128,16 @@ public class CANInterface {
   ///   - candumpToConsole: `Bool` representing whether the interface should display the received frames in CANDUMP-ish format to the console
   ///   - queue: dispatch queue to call the delegate method on
   ///   - rawDelegate: `CANInterfaceRawListeningDelegate` confirming object for receiving raw frames.
-  public init?(name: String,
+  public init(name: String,
                filters: [Int32] = [],
                calibrations: CANCalibrations? = nil,
                candumpToConsole: Bool = false,
                queue: DispatchQueue = DispatchQueue.main,
-               rawDelegate: CANInterfaceRAWListeningDelegate? = nil) {
+               rawDelegate: CANInterfaceRAWListeningDelegate? = nil) throws {
     
   
     if name.count > IFNAMSIZ {
-      return nil
+      throw CANInterfaceError.InterfaceNameTooLong
     }
     interfaceName = name
     delegateQueue = queue
@@ -146,7 +150,7 @@ public class CANInterface {
     // have to defer this call to C because the parameters PF_CAN, SOCK_RAW & CAN_RAW are not symbols available to swift
     socketFD = GetCANSocket()
     if socketFD < 0 {
-      return nil
+      throw CANInterfaceError.CreateSocketFailed
     }
     listeningQueue = DispatchQueue(label: "com.leisurehoundsports.swiftcanlib.listenqueue-\(socketFD)-\(interfaceName)")
     
@@ -159,7 +163,7 @@ public class CANInterface {
       _ = filters.withContiguousStorageIfAvailable { ptr in
         filterSetResult = SetCANFrameFilters(socketFD, UnsafeMutablePointer<Int32>(mutating: ptr.baseAddress), Int32(truncatingIfNeeded: filters.count))
       }
-      if filterSetResult < 0 { return nil }
+      if filterSetResult < 0 { throw CANInterfaceError.SetSockOptFiltersFailed }
     }
     
     // Prep the name string into a format that can be sent to C
@@ -174,7 +178,7 @@ public class CANInterface {
     let bindResult = BindCANSocket(socketFD, index, &addr);
 
     if bindResult < 0 {
-        return nil
+      throw CANInterfaceError.BindToSocketFailed
     }
 
     CANInterface.fdToCANInterfaceMap[socketFD] = self
@@ -184,6 +188,7 @@ public class CANInterface {
   
   deinit {
     if socketFD > 0 {
+      stopListening()
       close(socketFD)
     }
   }

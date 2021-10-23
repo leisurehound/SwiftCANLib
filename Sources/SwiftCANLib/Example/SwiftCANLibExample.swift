@@ -46,7 +46,7 @@ class SwiftCANLibExampleProcessor : CANCalibrationsListenerDelegate {
     
     // Create the CANInterface with the appropriate canlibrations for frames you are intrested in
     // If the inititialization is successful, the interface starts listening immediately
-    primaryCAN = CANInterface(name: "can1", filters: [0x100,0x120], calibrations: calibrations)
+    primaryCAN = try? CANInterface(name: "can1", filters: [0x100,0x120], calibrations: calibrations)
 
     primaryCAN?.startListening()
     
