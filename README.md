@@ -42,7 +42,7 @@ let calibrations = CANCalibrations(frames: [frame100Calibration, frame120Calibra
 ```
 Create the CANInterface object, injecting the calibrations you're interested in processing from that interface and start listening:
 ```
-let primaryCAN = CANInterface(name: "can1", filters: [0x100,0x120], calibrations: calibrations)
+let primaryCAN = try? CANInterface(name: "can1", filters: [0x100,0x120], calibrations: calibrations)
 primaryCAN?.startListening()
 
 ```
