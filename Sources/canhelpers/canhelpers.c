@@ -192,7 +192,7 @@ int WriteCANFrame(int fd, int32_t id, char len,  unsigned char *data) {
   frame.can_dlc = len;
   
   memcpy(frame.data, data, len);
-  return write(fd, &frame, sizeof(frame));
+  return send(fd, &frame, sizeof(frame), 0);
 }
 
 int WriteCANFDFrame(int fd, int32_t id, char len, unsigned char *data) {
@@ -205,5 +205,5 @@ int WriteCANFDFrame(int fd, int32_t id, char len, unsigned char *data) {
   frame.len = len;
 
   memcpy(frame.data, data, len);
-  return write(fd, &frame, sizeof(frame));
+  return send(fd, &frame, sizeof(frame), 0);
 }
