@@ -233,6 +233,7 @@ public class CANInterface {
       case EINTR: return .failure(.WriteWasInterruptedBeforeCompletion)
       case EAGAIN: return .failure(.NonBlockingWriteCouldNotBeWrittenImmediately)
       default:
+        print("WriteResult = \(writeResult)")
         return .failure(.UnkownWriteError)
       }
     }
