@@ -192,9 +192,7 @@ int WriteCANFrame(int fd, int32_t id, char len,  unsigned char *data) {
   frame.can_dlc = len;
   
   memcpy(frame.data, data, len);
-  int result = send(fd, &frame, sizeof(frame), 0);
-  printf("C write results %d and errno %d", result, errno);
-  return result;
+  return send(fd, &frame, sizeof(frame), 0);
 }
 
 int WriteCANFDFrame(int fd, int32_t id, char len, unsigned char *data) {
