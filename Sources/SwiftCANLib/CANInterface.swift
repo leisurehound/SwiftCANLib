@@ -99,6 +99,7 @@ public class CANInterface {
     case WriteWasInterruptedBeforeCompletion
     case NonBlockingWriteCouldNotBeWrittenImmediately
     case SizeOfBufferIsGreaterThanSSIZE_MAX
+    case NoSuchDeviceOrAddress
     case UnkownWriteError
   }
   
@@ -232,6 +233,7 @@ public class CANInterface {
       case EFAULT: return .failure(.MemoryAccessErrorOnFrameWrite)
       case EINTR: return .failure(.WriteWasInterruptedBeforeCompletion)
       case EAGAIN: return .failure(.NonBlockingWriteCouldNotBeWrittenImmediately)
+      case ENXIO: return .failure(.NoSuchDeviceOrAddress)
       default:
         return .failure(.UnkownWriteError)
       }
