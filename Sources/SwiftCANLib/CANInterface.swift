@@ -49,10 +49,10 @@ public class CANInterface {
   
   /// Swift representation of CAN_FRAME with interface name, timestamp, frame ID & payload
   public struct Frame {
-    let interface: String
-    let timestamp: TimeInterval
-    let frameID: UInt
-    let data: [UInt8]
+    public let interface: String
+    public let timestamp: TimeInterval
+    public let frameID: UInt
+    public let data: [UInt8]
   }
   
   private struct SwiftCANFDFrameShim {
